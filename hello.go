@@ -1,12 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 )
+
+type Input struct {
+	Clone_url string
+	Size      int
+}
 
 type File struct {
 	name string
@@ -19,19 +25,21 @@ type Scan struct {
 }
 
 func main() {
-	fmt.Print("Enter repo url: ")
-	var repoUrl string
-	fmt.Scanln(&repoUrl)
+	jsonData, err := os.ReadFile("input.json")
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+	var input Input
+	err = json.Unmarshal(jsonData, &input)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
 
-	fmt.Print("Enter min file size: ")
-	var fileSize int
-	fmt.Scanln(&fileSize)
-
-	if gitClone(repoUrl) != nil {
+	if gitClone(input.Clone_url) != nil {
 		return
 	}
 
-	scan := scanRepoFiles("onboarding-golang", fileSize)
+	scan := scanRepoFiles("onboarding-golang", input.Size)
 	fmt.Printf("%+v\n", scan)
 
 	if deleteRepoDir() != nil {
@@ -41,11 +49,6 @@ func main() {
 
 func gitClone(repoUrl string) error {
 	cmd := exec.Command("git", "clone", repoUrl)
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	// Run the command
 	err := cmd.Run()
 
 	if err != nil {
