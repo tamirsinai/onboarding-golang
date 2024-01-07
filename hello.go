@@ -36,7 +36,7 @@ func main() {
 		return
 	}
 
-	scan := scanRepoFiles("onboarding-golang", input.Size)
+	scan := scanRepoFiles("/tmp/cloned-projects", input.Size)
 	fmt.Printf("%+v\n", scan)
 
 	if err := deleteRepoDir(); err != nil {
