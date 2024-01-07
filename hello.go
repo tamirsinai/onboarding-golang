@@ -25,38 +25,46 @@ type Scan struct {
 }
 
 func main() {
-	jsonData, err := os.ReadFile("input.json")
+	input, err := readInputFile()
 	if err != nil {
-		fmt.Println("Error:", err)
-	}
-	var input Input
-	err = json.Unmarshal(jsonData, &input)
-	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error with read input file:", err)
+		return
 	}
 
-	if gitClone(input.Clone_url) != nil {
+	if err := gitClone(input.Clone_url); err != nil {
+		fmt.Println("Error with clone repo:", err)
 		return
 	}
 
 	scan := scanRepoFiles("onboarding-golang", input.Size)
 	fmt.Printf("%+v\n", scan)
 
-	if deleteRepoDir() != nil {
+	if err := deleteRepoDir(); err != nil {
+		fmt.Println("Error with delete repo:", err)
 		return
 	}
 }
 
-func gitClone(repoUrl string) error {
-	cmd := exec.Command("git", "clone", repoUrl)
-	err := cmd.Run()
-
+func readInputFile() (Input, error) {
+	jsonData, err := os.ReadFile("input.json")
 	if err != nil {
-		fmt.Println("Error executing git clone:", err)
-	} else {
-		fmt.Println("Git clone successful.")
+		return Input{}, err
 	}
 
+	var input Input
+	err = json.Unmarshal(jsonData, &input)
+	if err != nil {
+		return input, err
+	}
+
+	return input, err
+}
+
+func gitClone(repoUrl string) error {
+	os.Mkdir("/tmp/cloned-projects", 0755)
+	os.Chdir("/tmp/cloned-projects")
+	cmd := exec.Command("git", "clone", repoUrl)
+	err := cmd.Run()
 	return err
 }
 
@@ -84,7 +92,7 @@ func scanRepoFiles(root string, fileSize int) Scan {
 }
 
 func deleteRepoDir() error {
-	err := os.RemoveAll("onboarding-golang")
+	err := os.RemoveAll("/tmp/cloned-projects")
 
 	if err != nil {
 		fmt.Println("Error:", err)
