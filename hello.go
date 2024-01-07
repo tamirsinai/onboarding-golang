@@ -9,19 +9,21 @@ import (
 	"strings"
 )
 
+const CLONED_PROJECTS_DIR string = "/tmp/cloned-projects"
+
 type Input struct {
-	Clone_url string
-	Size      int
+	CloneUrl string `json:"clone_url"`
+	Size     int
 }
 
 type File struct {
-	name string
-	size int
+	Name string
+	Size int
 }
 
 type Scan struct {
-	total int
-	files []File
+	Total int
+	Files []File
 }
 
 func main() {
@@ -31,13 +33,22 @@ func main() {
 		return
 	}
 
-	if err := gitClone(input.Clone_url); err != nil {
+	if err := gitClone(input.CloneUrl); err != nil {
 		fmt.Println("Error with clone repo:", err)
 		return
 	}
 
-	scan := scanRepoFiles("/tmp/cloned-projects", input.Size)
-	fmt.Printf("%+v\n", scan)
+	scan := scanRepoFiles(CLONED_PROJECTS_DIR, input.Size*1000)
+
+	if err := writeOutputFile(scan); err != nil {
+		fmt.Println("Error with write output file:", err)
+	}
+
+	path, err := filepath.Abs("output.json")
+	if err != nil {
+		fmt.Println("Error getting absolute path:", err)
+	}
+	fmt.Printf("%s", path)
 
 	if err := deleteRepoDir(); err != nil {
 		fmt.Println("Error with delete repo:", err)
@@ -61,17 +72,20 @@ func readInputFile() (Input, error) {
 }
 
 func gitClone(repoUrl string) error {
-	os.Mkdir("/tmp/cloned-projects", 0755)
-	os.Chdir("/tmp/cloned-projects")
-	cmd := exec.Command("git", "clone", repoUrl)
+	if err := os.Mkdir(CLONED_PROJECTS_DIR, 0755); err != nil {
+		fmt.Println("Error make dir:", err)
+		return err
+	}
+
+	cmd := exec.Command("git", "clone", repoUrl, CLONED_PROJECTS_DIR)
 	err := cmd.Run()
 	return err
 }
 
 func scanRepoFiles(root string, fileSize int) Scan {
 	scan := Scan{
-		total: 0,
-		files: []File{},
+		Total: 0,
+		Files: []File{},
 	}
 
 	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -81,8 +95,8 @@ func scanRepoFiles(root string, fileSize int) Scan {
 		}
 
 		if !info.IsDir() && !strings.Contains(path, "/.git/") && int(info.Size()) > fileSize {
-			scan.total = scan.total + 1
-			scan.files = append(scan.files, File{path, int(info.Size())})
+			scan.Total = scan.Total + 1
+			scan.Files = append(scan.Files, File{path, int(info.Size())})
 		}
 
 		return nil
@@ -91,14 +105,16 @@ func scanRepoFiles(root string, fileSize int) Scan {
 	return scan
 }
 
-func deleteRepoDir() error {
-	err := os.RemoveAll("/tmp/cloned-projects")
-
+func writeOutputFile(scan Scan) error {
+	jsonData, err := json.Marshal(scan)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error marshaling JSON:", err)
+		return err
 	}
-
-	fmt.Println("Directory deleted successfully.")
-
+	err = os.WriteFile("output.json", jsonData, 0644)
 	return err
+}
+
+func deleteRepoDir() error {
+	return os.RemoveAll(CLONED_PROJECTS_DIR)
 }
