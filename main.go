@@ -30,11 +30,13 @@ func main() {
 
 	if err := files.WriteOutputFile(scan); err != nil {
 		logger.Error("Error write output file:", zap.Error(err))
+		return
 	}
 	
 	path, err := filepath.Abs(files.OutputFileName)
 	if err != nil {
 		logger.Error("Error getting absolute path:", zap.Error(err))
+		return
 	}
 	logger.Info(path)
 
