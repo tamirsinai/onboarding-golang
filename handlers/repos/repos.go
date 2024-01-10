@@ -2,46 +2,48 @@ package repos
 
 import (
 	"os"
-	"fmt"
 	"os/exec"
 	"path/filepath"
-	"strings"
-	"github.com/tamirsinai/onboarding-golang/modules"
+	"github.com/tamirsinai/onboarding-golang/models"
+	"github.com/pkg/errors"
 )
 
 const ClonedProjectsDir string = "/tmp/cloned-projects"
 
 func CloneRepositoryToScan(repoUrl string) error {
 	if err := os.Mkdir(ClonedProjectsDir, 0755); err != nil {
-		fmt.Println("Error make dir:", err)
 		return err
 	}
 
 	cmd := exec.Command("git", "clone", repoUrl, ClonedProjectsDir)
-	err := cmd.Run()
-	return err
+	output, err := cmd.CombinedOutput()
+	return errors.Wrap(err, string(output))
 }
 
-func ScanRepoFiles(repoPath string, fileSizeLimit int) modules.Scan {
-	scan := modules.Scan{}
+func ScanRepoFiles(repoPath string, fileSizeLimit int) (*models.Scan, error) {
+	subDirToSkip := ".git"
+	scan := models.Scan{}
 
-	filepath.Walk(repoPath, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(repoPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			fmt.Println(err)
-			return nil
+			return err
 		}
 
-		if !info.IsDir() && !strings.Contains(path, "/.git/") && int(info.Size()) > fileSizeLimit {
+		if info.IsDir() && info.Name() == subDirToSkip {
+			return filepath.SkipDir
+		}
+
+		if !info.IsDir() && int(info.Size()) > fileSizeLimit {
 			scan.Total = scan.Total + 1
-			scan.Files = append(scan.Files, modules.File{path, int(info.Size())})
-		}
+			scan.Files = append(scan.Files, models.File{Name: path, Size: int(info.Size())})
 
+		}
 		return nil
 	})
 
-	return scan
+	return &scan, err
 }
 
-func DeleteRepoDir() error {
+func DeleteClonedProjectsDir() error {
 	return os.RemoveAll(ClonedProjectsDir)
 }

@@ -3,36 +3,43 @@ package main
 import (
 	"github.com/tamirsinai/onboarding-golang/handlers/files"
 	"github.com/tamirsinai/onboarding-golang/handlers/repos"
-	"fmt"
 	"path/filepath"
+	"go.uber.org/zap"
 )
 
 func main() {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
 	input, err := files.ReadInputFile()
 	if err != nil {
-		fmt.Println("Error with read input file:", err)
+		logger.Error("Error read input file:", zap.Error(err))
 		return
 	}
 
 	if err := repos.CloneRepositoryToScan(input.CloneUrl); err != nil {
-		fmt.Println("Error with clone repo:", err)
+		logger.Error("Error clone repo:", zap.Error(err))
 		return
 	}
 
-	scan := repos.ScanRepoFiles(repos.ClonedProjectsDir, input.Size)
+	scan, err := repos.ScanRepoFiles(repos.ClonedProjectsDir, input.Size)
+	if err != nil {
+		logger.Error("Error scanning repo files:", zap.Error(err))
+		return
+	}
 
 	if err := files.WriteOutputFile(scan); err != nil {
-		fmt.Println("Error with write output file:", err)
+		logger.Error("Error write output file:", zap.Error(err))
 	}
-
-	path, err := filepath.Abs("output.json")
+	
+	path, err := filepath.Abs(files.OutputFileName)
 	if err != nil {
-		fmt.Println("Error getting absolute path:", err)
+		logger.Error("Error getting absolute path:", zap.Error(err))
 	}
-	fmt.Println(path)
+	logger.Info(path)
 
-	if err := repos.DeleteRepoDir(); err != nil {
-		fmt.Println("Error with delete repo:", err)
+	if err := repos.DeleteClonedProjectsDir(); err != nil {
+		logger.Error("Error with delete repo:", zap.Error(err))
 		return
 	}
 }

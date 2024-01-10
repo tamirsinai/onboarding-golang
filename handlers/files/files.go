@@ -1,34 +1,35 @@
 package files
 
 import (
-	"github.com/tamirsinai/onboarding-golang/modules"
+	"github.com/tamirsinai/onboarding-golang/models"
 	"os"
 	"encoding/json"
-	"fmt"
 )
 
 const inputFileName string = "input.json"
+const OutputFileName string = "output.json"
 
-func ReadInputFile() (*modules.Input, error) {
+func ReadInputFile() (*models.Input, error) {
 	jsonData, err := os.ReadFile(inputFileName)
 	if err != nil {
 		return nil, err
 	}
 
-	var input modules.Input
+	var input models.Input
 	if err := json.Unmarshal(jsonData, &input); err != nil {
 		return nil, err
 	}
 
-	return &input, err
+	return &input, nil
 }
 
-func WriteOutputFile(scan modules.Scan) error {
-	jsonData, err := json.Marshal(scan)
+func WriteOutputFile(scan *models.Scan) error {
+	jsonData, err := json.Marshal(&scan)
 	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
 		return err
 	}
-	err = os.WriteFile("output.json", jsonData, 0644)
-	return err
+	if err := os.WriteFile(OutputFileName, jsonData, 0644); err != nil {
+		return err
+	}
+	return nil
 }

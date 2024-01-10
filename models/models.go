@@ -1,4 +1,4 @@
-package modules
+package models
 
 type Input struct {
 	CloneUrl string `json:"clone_url"`
