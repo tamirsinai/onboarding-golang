@@ -1,4 +1,4 @@
-package files
+package read_input
 
 import (
 	"github.com/tamirsinai/onboarding-golang/models"
@@ -7,7 +7,6 @@ import (
 )
 
 const inputFileName string = "input.json"
-const OutputFileName string = "output.json"
 
 func ReadInputFile() (*models.Input, error) {
 	jsonData, err := os.ReadFile(inputFileName)
@@ -21,15 +20,4 @@ func ReadInputFile() (*models.Input, error) {
 	}
 
 	return &input, nil
-}
-
-func WriteOutputFile(scan *models.Scan) error {
-	jsonData, err := json.Marshal(&scan)
-	if err != nil {
-		return err
-	}
-	if err := os.WriteFile(OutputFileName, jsonData, 0644); err != nil {
-		return err
-	}
-	return nil
 }

@@ -1,24 +1,10 @@
-package repos
+package scan_repo_files
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 	"github.com/tamirsinai/onboarding-golang/models"
-	"github.com/pkg/errors"
 )
-
-const ClonedProjectsDir string = "/tmp/cloned-projects"
-
-func CloneRepositoryToScan(repoUrl string) error {
-	if err := os.Mkdir(ClonedProjectsDir, 0755); err != nil {
-		return err
-	}
-
-	cmd := exec.Command("git", "clone", repoUrl, ClonedProjectsDir)
-	output, err := cmd.CombinedOutput()
-	return errors.Wrap(err, string(output))
-}
 
 func ScanRepoFiles(repoPath string, fileSizeLimit int) (*models.Scan, error) {
 	subDirToSkip := ".git"
@@ -42,8 +28,4 @@ func ScanRepoFiles(repoPath string, fileSizeLimit int) (*models.Scan, error) {
 	})
 
 	return &scan, err
-}
-
-func DeleteClonedProjectsDir() error {
-	return os.RemoveAll(ClonedProjectsDir)
 }
