@@ -1,8 +1,8 @@
 package main
 
 import (
-	"example/handlers/files"
-	"example/handlers/repos"
+	"github.com/tamirsinai/onboarding-golang/handlers/files"
+	"github.com/tamirsinai/onboarding-golang/handlers/repos"
 	"fmt"
 	"path/filepath"
 )

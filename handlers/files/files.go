@@ -1,7 +1,7 @@
 package files
 
 import (
-	"example/modules"
+	"github.com/tamirsinai/onboarding-golang/modules"
 	"os"
 	"encoding/json"
 	"fmt"

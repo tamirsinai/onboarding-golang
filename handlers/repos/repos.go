@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"example/modules"
+	"github.com/tamirsinai/onboarding-golang/modules"
 )
 
 const ClonedProjectsDir string = "/tmp/cloned-projects"
