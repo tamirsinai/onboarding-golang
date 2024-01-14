@@ -1,4 +1,4 @@
-package scan_repo_files
+package scan
 
 import (
 	"os"
@@ -7,7 +7,6 @@ import (
 )
 
 func ScanRepoFiles(repoPath string, fileSizeLimit int) (*models.Scan, error) {
-	subDirToSkip := ".git"
 	scan := models.Scan{}
 
 	err := filepath.Walk(repoPath, func(path string, info os.FileInfo, err error) error {
@@ -15,7 +14,7 @@ func ScanRepoFiles(repoPath string, fileSizeLimit int) (*models.Scan, error) {
 			return err
 		}
 
-		if info.IsDir() && info.Name() == subDirToSkip {
+		if info.IsDir() && info.Name() == ".git" {
 			return filepath.SkipDir
 		}
 

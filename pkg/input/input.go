@@ -1,4 +1,4 @@
-package read_input
+package input
 
 import (
 	"github.com/tamirsinai/onboarding-golang/models"

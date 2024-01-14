@@ -2,10 +2,9 @@ package main
 
 import (
 	"github.com/tamirsinai/onboarding-golang/pkg/output"
-	"github.com/tamirsinai/onboarding-golang/pkg/clone_repo"
-	"github.com/tamirsinai/onboarding-golang/pkg/read_input"
-	"github.com/tamirsinai/onboarding-golang/pkg/scan_repo_files"
-	"github.com/tamirsinai/onboarding-golang/pkg/delete_cloned_projects_dir"
+	"github.com/tamirsinai/onboarding-golang/pkg/repo"
+	"github.com/tamirsinai/onboarding-golang/pkg/input"
+	"github.com/tamirsinai/onboarding-golang/pkg/scan"
 	"path/filepath"
 	"go.uber.org/zap"
 )
@@ -14,18 +13,18 @@ func main() {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
-	input, err := read_input.ReadInputFile()
+	input, err := input.ReadInputFile()
 	if err != nil {
 		logger.Error("Error read input file:", zap.Error(err))
 		return
 	}
 
-	if err := clone_repo.CloneRepositoryToScan(input.CloneUrl); err != nil {
+	if err := repo.CloneRepositoryToScan(input.CloneUrl); err != nil {
 		logger.Error("Error clone repo:", zap.Error(err))
 		return
 	}
 
-	scan, err := scan_repo_files.ScanRepoFiles(clone_repo.ClonedProjectsDir, input.Size)
+	scan, err := scan.ScanRepoFiles(repo.ClonedProjectsDir, input.Size)
 	if err != nil {
 		logger.Error("Error scanning repo files:", zap.Error(err))
 		return
@@ -43,7 +42,7 @@ func main() {
 	}
 	logger.Info(path)
 
-	if err := delete_cloned_projects_dir.DeleteClonedProjectsDir(); err != nil {
+	if err := repo.DeleteClonedProjectsDir(); err != nil {
 		logger.Error("Error with delete repo:", zap.Error(err))
 		return
 	}

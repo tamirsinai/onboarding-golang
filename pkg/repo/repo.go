@@ -1,4 +1,4 @@
-package clone_repo
+package repo
 
 import (
 	"os"
@@ -16,4 +16,8 @@ func CloneRepositoryToScan(repoUrl string) error {
 	cmd := exec.Command("git", "clone", repoUrl, ClonedProjectsDir)
 	output, err := cmd.CombinedOutput()
 	return errors.Wrap(err, string(output))
+}
+
+func DeleteClonedProjectsDir() error {
+	return os.RemoveAll(ClonedProjectsDir)
 }
