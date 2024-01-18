@@ -2,7 +2,7 @@ package models
 
 type Input struct {
 	CloneUrl string `json:"clone_url"`
-	Size     int
+	Size     int `json:"size"`
 }
 
 type File struct {
