@@ -11,30 +11,31 @@ import (
 	awsLocal "github.com/tamirsinai/onboarding-golang/pkg/awslocal"
 )
 
-var OutputFileName string = "output.json"
+var outputFileName string = "output.json"
+var OutputFilePath string = "/tmp/" + outputFileName
 
 func WriteOutputFile(scan *models.Scan) error {
 	jsonData, err := json.Marshal(&scan)
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(OutputFileName, jsonData, 0644); err != nil {
+	if err := os.WriteFile(OutputFilePath, jsonData, 0644); err != nil {
 		return err
 	}
 	return nil
 }
 
-func Send() {
-	file, err := os.Open(OutputFileName)
+func Send(ctx context.Context) {
+	file, err := os.Open(OutputFilePath)
 	if err != nil {
 		fmt.Println("Error opening JSON file:", err)
 		return
 	}
 	defer file.Close()
 
-	_, err = awsLocal.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+	_, err = awsLocal.S3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: &awsLocal.BucketName,
-		Key:    &OutputFileName,
+		Key:    &outputFileName,
 		Body:   file,
 	})
 	if err != nil {
